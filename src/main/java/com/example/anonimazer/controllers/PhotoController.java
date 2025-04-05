@@ -24,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Principal;
+import java.util.List;
 
 @Controller
 @RequestMapping("/anonimazer/photo")
@@ -75,8 +76,10 @@ public class PhotoController {
     }
 
     @GetMapping("/result")
-    public String showResult(@RequestParam("filename") String filename, Model model, Principal principal) {
-        Photo photo = photoRepository.findByFilename(filename)
+    public String showResult(@RequestParam(value = "filename", required = false) String filename,
+                             Model model, Principal principal) {
+
+        User user = userService.findByLogin(principal.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
         // проверка, текущий ли пользователь — владелец
@@ -87,5 +90,30 @@ public class PhotoController {
 
         model.addAttribute("filename", filename);
         return "result";
+    }
+
+    @PostMapping("/delete")
+    public String deletePhoto(@RequestParam("filename") String filename, Principal principal, RedirectAttributes redirectAttributes) {
+        Photo photo = photoRepository.findByFilename(filename)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        // Проверка владельца
+        if (!photo.getOwner().getLogin().equals(principal.getName())) {
+            return "forbidden";
+        }
+
+        // Удаление файла
+        try {
+            Path path = Paths.get("uploads").resolve(filename);
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            e.printStackTrace(); // можно логировать
+        }
+
+        // Удаление из базы данных
+        photoRepository.delete(photo);
+
+        // Редирект на result без filename, чтобы показать все оставшиеся
+        return "redirect:/anonimazer/photo/result";
     }
 }

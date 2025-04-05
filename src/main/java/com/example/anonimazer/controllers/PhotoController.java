@@ -82,13 +82,13 @@ public class PhotoController {
         User user = userService.findByLogin(principal.getName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
 
-        // проверка, текущий ли пользователь — владелец
-        if (!photo.getOwner().getLogin().equals(principal.getName())) {
-            System.out.println("redirect");
-            return "forbidden";
-        }
+        List<Photo> photos = photoRepository.findByOwner(user);
 
-        model.addAttribute("filename", filename);
+        List<String> filenames = photos.stream()
+                .map(Photo::getFilename)
+                .toList();
+
+        model.addAttribute("filenames", filenames);
         return "result";
     }
 

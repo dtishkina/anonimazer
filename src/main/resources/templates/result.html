@@ -43,6 +43,7 @@
             display: block;
             width: 100%;
             margin-bottom: 15px;
+            text-decoration: none;
         }
 
         .controls select,
@@ -230,9 +231,12 @@
             const zipBlob = await zipResponse.blob();
             const zipUrl = URL.createObjectURL(zipBlob);
 
-            const link = document.getElementById("downloadZip");
-            link.href = zipUrl;
-            link.style.display = "inline-block";  // показать кнопку
+                const link = document.getElementById("downloadZip");
+                link.href = zipUrl;
+                link.style.display = "inline-block";
+                document.getElementById("processedSection").style.display = "block";
+            }
+
         } finally {
             overlay.style.display = "none"; // скрыть
         }

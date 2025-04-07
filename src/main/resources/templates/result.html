@@ -140,6 +140,11 @@
         h2 {
             color: #2c3e50;
         }
+
+        .control-section {
+            margin-bottom: 35px;
+        }
+
         .overlay {
             position: fixed;
             top: 0;
@@ -197,7 +202,8 @@
 
     <div class="controls">
         <h2>Управление</h2>
-        <form action="/anonimazer/photo/upload" method="post" enctype="multipart/form-data">
+
+        <div class="control-section">
             <label for="maskType">Тип анонимизации:</label>
             <select id="maskType" name="maskType">
                 <option value="pixel">Мозаика</option>
@@ -243,50 +249,51 @@
             const processedGallery = document.getElementById('processedGallery');
             const files = [];
 
-        for (const block of blocks) {
-            const img = block.querySelector('img');
-            const filename = img.src.split('/').pop();
+            for (const block of blocks) {
+                const img = block.querySelector('img');
+                const filename = img.src.split('/').pop();
 
-            const blob = await fetch(`/uploads/${filename}`).then(r => r.blob());
-            const formData = new FormData();
-            formData.append("file", blob, filename);
+                const blob = await fetch(`/uploads/${filename}`).then(r => r.blob());
+                const formData = new FormData();
+                formData.append("file", blob, filename);
 
-            const response = await fetch(`http://localhost:5000/blur-faces?style=${style}`, {
+                const response = await fetch(`http://localhost:5000/blur-faces?style=${style}`, {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const resultBlob = await response.blob();
+                    const resultUrl = URL.createObjectURL(resultBlob);
+
+                    const blurredImg = document.createElement('img');
+                    blurredImg.src = resultUrl;
+                    blurredImg.alt = "Заблюренный результат";
+                    blurredImg.style.border = "2px dashed #333";
+                    blurredImg.style.marginTop = "10px";
+
+                    const processedWrapper = document.createElement('div');
+                    processedWrapper.className = 'image-wrapper';
+                    processedWrapper.appendChild(blurredImg);
+                    processedGallery.appendChild(processedWrapper);
+
+                    files.push({ blob: resultBlob, name: filename });
+                }
+            }
+
+            const archiveFormData = new FormData();
+            for (let file of files) {
+                archiveFormData.append("files", file.blob, file.name);
+            }
+
+            const zipResponse = await fetch("http://localhost:5000/create-zip", {
                 method: "POST",
-                body: formData
+                body: archiveFormData
             });
 
-            if (response.ok) {
-                const resultBlob = await response.blob();
-                const resultUrl = URL.createObjectURL(resultBlob);
-
-                const blurredImg = document.createElement('img');
-                blurredImg.src = resultUrl;
-                blurredImg.alt = "Заблюренный результат";
-                blurredImg.style.border = "2px dashed #333";
-                blurredImg.style.marginTop = "10px";
-
-                block.appendChild(blurredImg);
-
-                // Добавляем в список для архивации
-                files.push({ blob: resultBlob, name: filename });
-            }
-        }
-
-        // отправка всех изображений на сервер для архивации
-        const archiveFormData = new FormData();
-        for (let file of files) {
-            archiveFormData.append("files", file.blob, file.name);
-        }
-
-        const zipResponse = await fetch("http://localhost:5000/create-zip", {
-            method: "POST",
-            body: archiveFormData
-        });
-
-        if (zipResponse.ok) {
-            const zipBlob = await zipResponse.blob();
-            const zipUrl = URL.createObjectURL(zipBlob);
+            if (zipResponse.ok) {
+                const zipBlob = await zipResponse.blob();
+                const zipUrl = URL.createObjectURL(zipBlob);
 
                 const link = document.getElementById("downloadZip");
                 link.href = zipUrl;
@@ -298,7 +305,5 @@
             overlay.style.display = "none"; // скрыть
         }
     });
-
 </script>
-
 </html>

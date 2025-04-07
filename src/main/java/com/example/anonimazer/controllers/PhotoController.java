@@ -51,7 +51,6 @@ public class PhotoController {
             return "redirect:/anonimazer/photo/result";
         }
 
-        // Создаём папку uploads, если нет
         Path uploadPath = Paths.get(UPLOAD_DIR);
         if (!Files.exists(uploadPath)) {
             Files.createDirectories(uploadPath);
@@ -74,8 +73,6 @@ public class PhotoController {
             }
         }
 
-        // Перенаправляем на страницу результата
-        redirectAttributes.addAttribute("filename", filename);
         return "redirect:/anonimazer/photo/result";
     }
 

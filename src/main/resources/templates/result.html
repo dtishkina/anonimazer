@@ -204,19 +204,23 @@
                 <option value="box">Чёрный квадрат</option>
                 <option value="eyes">Полоска на глаза</option>
             </select>
+            <button id="blurAllBtn">Заблюрить</button>
+        </div>
 
-            <label for="uploadImage">Загрузить ещё изображение:</label>
-            <input type="file" id="uploadImage" name="file" accept="image/*" required>
-
-            <button type="submit">Загрузить</button>
-        </form>
-
-        <button id="blurAllBtn">Заблюрить</button>
-        <a id="downloadZip" href="#" download="blurred_images.zip" style="display:none;">
-            <button>Скачать архив</button>
-        </a>
-    </div>
+        <div class="control-section">
+            <form id="uploadForm" action="/anonimazer/photo/upload" method="post" enctype="multipart/form-data">
                 <input type="file" id="uploadImage" name="files" multiple accept="image/*" style="display: none;" required>
+                <button type="button" onclick="document.getElementById('uploadImage').click()">Загрузить изображение</button>
+            </form>
+        </div>
+
+        <div class="control-section">
+            <a id="downloadZip" href="#" download="blurred_images.zip" style="display:none; margin-top: 10px">
+                <button type="button">Скачать архив</button>
+            </a>
+        </div>
+    </div>
+
 </div>
 <div id="loadingOverlay" class="overlay" style="display: none;">
     <div class="spinner"></div>

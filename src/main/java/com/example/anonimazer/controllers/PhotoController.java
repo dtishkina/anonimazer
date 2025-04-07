@@ -44,11 +44,11 @@ public class PhotoController {
     }
 
     @PostMapping("/upload")
-    public String handleFileUpload(@RequestParam("file") MultipartFile file,
+    public String handleFileUpload(@RequestParam("files") MultipartFile[] files,
                                    RedirectAttributes redirectAttributes) throws IOException {
 
-        if (file.isEmpty()) {
-            return "redirect:/upload.html";
+        if (files.length == 0) {
+            return "redirect:/anonimazer/photo/result";
         }
 
         // Создаём папку uploads, если нет
@@ -57,18 +57,22 @@ public class PhotoController {
             Files.createDirectories(uploadPath);
         }
 
-        // Сохраняем файл
-        String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
-        Path destination = uploadPath.resolve(filename);
-        Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String username = auth.getName();
-        User user = userService.findByLogin(username).orElseThrow(); // получаем текущего пользователя
+        User user = userService.findByLogin(username).orElseThrow();
 
-        Photo photo = new Photo();
-        photo.setFilename(filename);
-        photo.setOwner(user);
-        photoRepository.save(photo);
+        for (MultipartFile file : files) {
+            if (!file.isEmpty()) {
+                String filename = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                Path destination = uploadPath.resolve(filename);
+                Files.copy(file.getInputStream(), destination, StandardCopyOption.REPLACE_EXISTING);
+
+                Photo photo = new Photo();
+                photo.setFilename(filename);
+                photo.setOwner(user);
+                photoRepository.save(photo);
+            }
+        }
 
         // Перенаправляем на страницу результата
         redirectAttributes.addAttribute("filename", filename);

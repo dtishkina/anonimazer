@@ -216,12 +216,19 @@
             <button>Скачать архив</button>
         </a>
     </div>
+                <input type="file" id="uploadImage" name="files" multiple accept="image/*" style="display: none;" required>
 </div>
 <div id="loadingOverlay" class="overlay" style="display: none;">
     <div class="spinner"></div>
 </div>
 </body>
 <script>
+    document.getElementById('uploadImage').addEventListener('change', function () {
+        if (this.files.length > 0) {
+            document.getElementById('uploadForm').submit();
+        }
+    });
+
     document.getElementById('blurAllBtn').addEventListener('click', async function () {
         const overlay = document.getElementById('loadingOverlay');
         overlay.style.display = "flex";

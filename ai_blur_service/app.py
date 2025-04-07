@@ -9,6 +9,8 @@ from fastapi import FastAPI
 from fastapi import UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi import Query
+
 
 app = FastAPI()
 
@@ -102,7 +104,10 @@ async def create_zip(files: list[UploadFile] = File(...)):
     return StreamingResponse(open(zip_io.name, "rb"), media_type="application/zip")
 
 @app.post("/blur-faces")
-async def blur_faces(file: UploadFile = File(...), style: str = "pixel"):
+async def blur_faces(
+        file: UploadFile = File(...),
+        style: str = Query("pixel")
+):
     contents = await file.read()
     nparr = np.frombuffer(contents, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
